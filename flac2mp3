@@ -1,8 +1,14 @@
 #!/bin/bash
-# flac2mp3.sh: Transcode FLAC audio files to MP3 audio files
+# flac2mp3: Transcode FLAC audio files to MP3 audio files
+# 
+# Version 1.2 (2010-01-10) by Korbinian Pauli http://www.muxcom.net
+# * extract cover art from flac file and insert it into mp3
+# 
+# Script based on a script by:
 # James A. Hillyerd
 # $Revision: 24 $, $Date: 2006-10-04 19:10:00 -0700 (Wed, 04 Oct 2006) $
 # Release: 1.1
+# http://bytemonkey.org/flac2mp3
 #
 # Usage: flac2mp3 <input-dir> <output-dir>
 
@@ -72,6 +78,7 @@ WORK="$TMPDIR/flac2mp3.$$"
 ERR="$WORK/stderr.txt"
 WAV="$WORK/track.wav"
 TAGS="$WORK/track.tags"
+COVER="$WORK/track.jpg"
 
 # Get absolute directory paths
 INPUTDIR="$1"
@@ -145,6 +152,9 @@ for filepath in $(find . -type f -name '*.flac' -print \
     source "$TAGS"
     echo "$ARTIST / $ALBUM ($DATE) / $TRACKNUMBER - $TITLE"
 
+    #Get cover
+    $METAFLAC --export-picture-to="$COVER" "$filepath.flac"
+
     # Decode FLAC (loop until success or MAXFAILS reached)
     attempt=0
     success=0
@@ -171,6 +181,7 @@ for filepath in $(find . -type f -name '*.flac' -print \
     # Encode MP3
     $LAME $LAME_OPTS --tt "$TITLE" --ta "$ARTIST" --tl "$ALBUM" \
         --tn "$TRACKNUMBER" --tg "$GENRE" --ty "$DATE" \
+	--ti "$COVER" \
         "$WAV" "$OUTPUTDIR/$filepath.mp3"
     if (( $? )); then
       echo ""
@@ -186,6 +197,11 @@ for filepath in $(find . -type f -name '*.flac' -print \
     fi
     echo ""
     echo ""
+
+    # Remove cover file
+    if [ -x "$COVER" ]; then
+      rm -f "$COVER"
+    fi
 
     # Remove the lock file
     if [ -x "$DOTLOCKFILE" ]; then
