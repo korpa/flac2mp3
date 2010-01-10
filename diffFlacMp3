@@ -1,6 +1,6 @@
 #!/bin/bash
 # 
-# diffFlacMp3 2010
+# diffFlacMp3 Copyright (c) 2010 by Korbinian Pauli
 #
 # This script checks if all FLAC interpret and album directories exist in 
 # the MP3 directory. If not it will create them and convert all FLACs to 
