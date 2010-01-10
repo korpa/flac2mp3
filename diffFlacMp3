@@ -1,0 +1,77 @@
+#!/bin/bash
+# 
+# diffFlacMp3 2010
+#
+# This script checks if all FLAC interpret and album directories exist in 
+# the MP3 directory. If not it will create them and convert all FLACs to 
+# MP3s in these directories.
+#
+# ---------------------------------------------------------------------- 
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2 of 
+# the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  
+# 02110-1301, USA.
+#
+# http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+#
+# ---------------------------------------------------------------------- 
+#
+# Directory structure:
+# ~/Music/_flac
+# ~/Music/_mp3
+#
+# Under _flac you have to have following structure:
+# ./interpret/album/title.flac
+#
+# flac2mp3 script has to be in your path. It's known to work under Ubuntu 
+# 8.10, 9.04 and 9.10. Please have a look on http://bytemonkey.org/flac2mp3
+# for flac2mp3 working correctly.
+#
+# Version 1.0 (2010-01-10) by Korbinian Pauli
+# * initial version
+
+baseUrl="~/Music"
+
+
+function convertFlacs {
+  d=`echo $1|grep "Only in"| grep "_flac"`
+  if [ -n "${d}" ]; then
+    d=`echo ${d}|sed -e "s/Only\ in\ //"`
+    flacDir=`echo ${d}|cut -d ":" -f 1`
+    album=`echo ${d}|cut -d ":" -f 2|sed -e 's/^[[:space:]]*//'`
+    flacDir="${flacDir}/${album}"
+    mp3Dir=`echo ${flacDir}|sed -e 's/_flac/_mp3/'` 
+    mkdir -p "${mp3Dir}"
+    flac2mp3 "${flacDir}" "${mp3Dir}" 
+  fi
+}
+
+
+#Check interpret directories
+diff "${baseUrl}/_flac/." "${baseUrl}/_mp3/"|while read d
+do
+  convertFlacs "${d}"
+done
+
+
+#Check album directories
+ls -1 ${baseUrl}/_flac |while read file
+do
+  diff "${baseUrl}/_flac/${file}/." "${baseUrl}/_mp3/${file}"|while read d
+  do
+    convertFlacs "${d}"
+  done
+done
+
+
